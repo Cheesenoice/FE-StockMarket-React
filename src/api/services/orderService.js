@@ -66,3 +66,33 @@ export const cancelOrder = async (orderId) => {
     };
   }
 };
+
+// Lấy danh sách lệnh chờ khớp
+export const getPendingOrders = async () => {
+  try {
+    const res = await apiClient.get("/api/nhadautu/order/pending");
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Lỗi khi lấy danh sách lệnh chờ khớp",
+    };
+  }
+};
+
+// Hủy lệnh chờ khớp
+export const cancelPendingOrder = async (maGD, mkgd) => {
+  try {
+    const res = await apiClient.post("/api/nhadautu/order/cancel", {
+      maGD,
+      mkgd,
+    });
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi hủy lệnh",
+    };
+  }
+};

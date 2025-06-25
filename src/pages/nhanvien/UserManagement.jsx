@@ -4,6 +4,14 @@ import {
   getInvestors,
   deleteEmployee,
   deleteInvestor,
+  addNhaDauTu,
+  updateNhaDauTu,
+  deleteNhaDauTu,
+  addNhanVien,
+  updateNhanVien,
+  deleteNhanVien,
+  undoUserAction,
+  redoUserAction,
 } from "../../api/services/userService";
 import { User, Users, Trash2, Edit, Plus } from "lucide-react";
 
@@ -18,6 +26,32 @@ const UserManagement = () => {
   const [investors, setInvestors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    MaNV: "",
+    HoTen: "",
+    NgaySinh: "",
+    DiaChi: "",
+    Phone: "",
+    CMND: "",
+    GioiTinh: "Nam",
+    Email: "",
+    MKGD: "", // chỉ cho nhà đầu tư
+  });
+  const [editForm, setEditForm] = useState({
+    MaNV: "",
+    MaNDT: "",
+    HoTen: "",
+    NgaySinh: "",
+    DiaChi: "",
+    Phone: "",
+    CMND: "",
+    GioiTinh: "Nam",
+    Email: "",
+    MKGD: "", // chỉ cho nhà đầu tư
+  });
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -64,8 +98,8 @@ const UserManagement = () => {
     try {
       const result =
         type === "nhanvien"
-          ? await deleteEmployee(id)
-          : await deleteInvestor(id);
+          ? await deleteNhanVien(id)
+          : await deleteNhaDauTu(id);
 
       if (result.success) {
         // Refresh data after successful deletion
@@ -87,6 +121,113 @@ const UserManagement = () => {
 
   const formatGender = (gender) => {
     return gender === "Nam" ? "Nam" : gender === "Nu" ? "Nữ" : gender;
+  };
+
+  const handleAdd = async () => {
+    setLoading(true);
+    setError("");
+    let result;
+    if (activeTab === "nhanvien") {
+      const { MKGD, ...nhanvienData } = addForm;
+      result = await addNhanVien(nhanvienData);
+    } else {
+      result = await addNhaDauTu(addForm);
+    }
+    setLoading(false);
+    if (result.success) {
+      setShowAddModal(false);
+      setAddForm({
+        MaNV: "",
+        HoTen: "",
+        NgaySinh: "",
+        DiaChi: "",
+        Phone: "",
+        CMND: "",
+        GioiTinh: "Nam",
+        Email: "",
+        MKGD: "",
+      });
+      fetchData();
+      alert("Thêm thành công!");
+    } else {
+      setError(result.message || "Có lỗi xảy ra khi thêm mới");
+    }
+  };
+
+  const handleEditClick = (item) => {
+    if (activeTab === "nhanvien") {
+      setEditForm({
+        MaNV: item.MaNV,
+        HoTen: item.HoTen,
+        NgaySinh: item.NgaySinh,
+        DiaChi: item.DiaChi,
+        Phone: item.Phone,
+        CMND: item.CMND,
+        GioiTinh: item.GioiTinh,
+        Email: item.Email,
+        MKGD: "",
+        MaNDT: "",
+      });
+    } else {
+      setEditForm({
+        MaNDT: item.MaNDT,
+        HoTen: item.HoTen,
+        NgaySinh: item.NgaySinh,
+        DiaChi: item.DiaChi,
+        Phone: item.Phone,
+        CMND: item.CMND,
+        GioiTinh: item.GioiTinh,
+        Email: item.Email,
+        MKGD: item.MKGD || "",
+        MaNV: "",
+      });
+    }
+    setShowEditModal(true);
+  };
+
+  const handleEdit = async () => {
+    setLoading(true);
+    setError("");
+    let result;
+    if (activeTab === "nhanvien") {
+      result = await updateNhanVien(editForm);
+    } else {
+      result = await updateNhaDauTu(editForm);
+    }
+    setLoading(false);
+    if (result.success) {
+      setShowEditModal(false);
+      fetchData();
+      alert("Cập nhật thành công!");
+    } else {
+      setError(result.message || "Có lỗi xảy ra khi cập nhật");
+    }
+  };
+
+  const handleUndo = async () => {
+    setLoading(true);
+    setMessage("");
+    const res = await undoUserAction();
+    setLoading(false);
+    if (res.success) {
+      setMessage("Hoàn tác thành công!");
+      fetchData();
+    } else {
+      setMessage(res.message);
+    }
+  };
+
+  const handleRedo = async () => {
+    setLoading(true);
+    setMessage("");
+    const res = await redoUserAction();
+    setLoading(false);
+    if (res.success) {
+      setMessage("Làm lại thành công!");
+      fetchData();
+    } else {
+      setMessage(res.message);
+    }
   };
 
   const renderEmployeeTable = () => (
@@ -158,9 +299,7 @@ const UserManagement = () => {
                   <button
                     className="p-1 text-blue-600 hover:text-blue-800"
                     title="Sửa"
-                    onClick={() =>
-                      alert("Chức năng sửa sẽ được phát triển sau")
-                    }
+                    onClick={() => handleEditClick(employee)}
                   >
                     <Edit size={16} />
                   </button>
@@ -255,9 +394,7 @@ const UserManagement = () => {
                   <button
                     className="p-1 text-blue-600 hover:text-blue-800"
                     title="Sửa"
-                    onClick={() =>
-                      alert("Chức năng sửa sẽ được phát triển sau")
-                    }
+                    onClick={() => handleEditClick(investor)}
                   >
                     <Edit size={16} />
                   </button>
@@ -309,21 +446,40 @@ const UserManagement = () => {
         })}
       </div>
 
-      {/* Add Button */}
+      {/* Add + Undo/Redo Buttons */}
       <div className="mb-4 flex justify-between items-center">
         <div className="text-sm text-gray-600 dark:text-gray-400">
           {activeTab === "nhanvien"
             ? `${employees.length} nhân viên`
             : `${investors.length} nhà đầu tư`}
         </div>
-        <button
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          onClick={() => alert("Chức năng thêm mới sẽ được phát triển sau")}
-        >
-          <Plus size={16} />
-          Thêm {activeTab === "nhanvien" ? "nhân viên" : "nhà đầu tư"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleUndo}
+            className="bg-yellow-500 text-white px-3 py-1 rounded"
+            disabled={loading}
+          >
+            Undo
+          </button>
+          <button
+            onClick={handleRedo}
+            className="bg-green-500 text-white px-3 py-1 rounded"
+            disabled={loading}
+          >
+            Redo
+          </button>
+          <button
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            onClick={() => setShowAddModal(true)}
+          >
+            <Plus size={16} />
+            Thêm {activeTab === "nhanvien" ? "nhân viên" : "nhà đầu tư"}
+          </button>
+        </div>
       </div>
+
+      {/* Message */}
+      {message && <div className="mb-2 text-blue-600">{message}</div>}
 
       {/* Error Message */}
       {error && (
@@ -365,6 +521,306 @@ const UserManagement = () => {
             <p>Chưa có nhà đầu tư nào</p>
           </div>
         ) : null)}
+
+      {showAddModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg">
+            <h2 className="text-lg font-semibold mb-4">
+              Thêm {activeTab === "nhanvien" ? "Nhân viên" : "Nhà đầu tư"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  {activeTab === "nhanvien" ? "Mã NV" : "Mã NĐT"}
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={
+                    activeTab === "nhanvien" ? addForm.MaNV : addForm.MaNDT
+                  }
+                  onChange={(e) =>
+                    setAddForm((f) => ({
+                      ...f,
+                      [activeTab === "nhanvien" ? "MaNV" : "MaNDT"]:
+                        e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Họ tên</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={addForm.HoTen}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, HoTen: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Ngày sinh
+                </label>
+                <input
+                  type="date"
+                  className="input"
+                  value={addForm.NgaySinh}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, NgaySinh: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Địa chỉ
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={addForm.DiaChi}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, DiaChi: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={addForm.Phone}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, Phone: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">CMND</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={addForm.CMND}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, CMND: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Giới tính
+                </label>
+                <select
+                  className="input"
+                  value={addForm.GioiTinh}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, GioiTinh: e.target.value }))
+                  }
+                >
+                  <option value="Nam">Nam</option>
+                  <option value="Nu">Nữ</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={addForm.Email}
+                  onChange={(e) =>
+                    setAddForm((f) => ({ ...f, Email: e.target.value }))
+                  }
+                />
+              </div>
+              {activeTab === "nhadautu" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Mật khẩu GD
+                  </label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={addForm.MKGD}
+                    onChange={(e) =>
+                      setAddForm((f) => ({ ...f, MKGD: e.target.value }))
+                    }
+                  />
+                </div>
+              )}
+            </div>
+            {error && (
+              <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setShowAddModal(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={handleAdd}
+                disabled={loading}
+              >
+                {loading ? "Đang xử lý..." : "Lưu"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg">
+            <h2 className="text-lg font-semibold mb-4">
+              Sửa {activeTab === "nhanvien" ? "Nhân viên" : "Nhà đầu tư"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  {activeTab === "nhanvien" ? "Mã NV" : "Mã NĐT"}
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={
+                    activeTab === "nhanvien" ? editForm.MaNV : editForm.MaNDT
+                  }
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Họ tên</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={editForm.HoTen}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, HoTen: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Ngày sinh
+                </label>
+                <input
+                  type="date"
+                  className="input"
+                  value={editForm.NgaySinh}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, NgaySinh: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Địa chỉ
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={editForm.DiaChi}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, DiaChi: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={editForm.Phone}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, Phone: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">CMND</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={editForm.CMND}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, CMND: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Giới tính
+                </label>
+                <select
+                  className="input"
+                  value={editForm.GioiTinh}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, GioiTinh: e.target.value }))
+                  }
+                >
+                  <option value="Nam">Nam</option>
+                  <option value="Nu">Nữ</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={editForm.Email}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, Email: e.target.value }))
+                  }
+                />
+              </div>
+              {activeTab === "nhadautu" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Mật khẩu GD
+                  </label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={editForm.MKGD}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, MKGD: e.target.value }))
+                    }
+                  />
+                </div>
+              )}
+            </div>
+            {error && (
+              <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setShowEditModal(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={handleEdit}
+                disabled={loading}
+              >
+                {loading ? "Đang xử lý..." : "Lưu"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

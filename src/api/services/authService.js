@@ -15,18 +15,18 @@ export const loginUser = async ({ tenDangNhap, matKhau }) => {
       // Lưu token
       localStorage.setItem("access_token", data.token);
 
-      // Lưu thông tin người dùng (chỉ có username và role)
+      // Lưu thông tin người dùng (username là MANDT và role)
       localStorage.setItem(
         "user",
         JSON.stringify({
-          username: tenDangNhap,
+          username: data.info?.MANDT,
           role: data.role,
         })
       );
 
       return {
         success: true,
-        user: { username: tenDangNhap, role: data.role },
+        user: { username: data.info?.MANDT, role: data.role },
       };
     } else {
       return { success: false, message: "Sai tài khoản hoặc mật khẩu." };

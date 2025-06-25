@@ -120,3 +120,142 @@ export const deleteInvestor = async (maNDT) => {
     };
   }
 };
+
+// Thêm nhà đầu tư
+export const addNhaDauTu = async (data) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.post("/api/nhanvien/users/nhadautu/add", data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi thêm nhà đầu tư",
+    };
+  }
+};
+
+// Sửa nhà đầu tư
+export const updateNhaDauTu = async (data) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.put(
+      "/api/nhanvien/users/nhadautu/update",
+      data,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi sửa nhà đầu tư",
+    };
+  }
+};
+
+// Xóa nhà đầu tư
+export const deleteNhaDauTu = async (maNDT) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.delete(
+      `/api/nhanvien/users/nhadautu/delete/${maNDT}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi xóa nhà đầu tư",
+    };
+  }
+};
+
+// Thêm nhân viên
+export const addNhanVien = async (data) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.post("/api/nhanvien/users/nhanvien/add", data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi thêm nhân viên",
+    };
+  }
+};
+
+// Sửa nhân viên
+export const updateNhanVien = async (data) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.put(
+      "/api/nhanvien/users/nhanvien/update",
+      data,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi sửa nhân viên",
+    };
+  }
+};
+
+// Xóa nhân viên
+export const deleteNhanVien = async (maNV) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.delete(
+      `/api/nhanvien/users/nhanvien/delete/${maNV}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi xóa nhân viên",
+    };
+  }
+};
+
+// Undo thao tác gần nhất với user
+export const undoUserAction = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.post(
+      "/api/nhanvien/users/undo-user",
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Lỗi khi hoàn tác thao tác user",
+    };
+  }
+};
+
+// Redo thao tác vừa undo với user
+export const redoUserAction = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await apiClient.post(
+      "/api/nhanvien/users/redo-user",
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Lỗi khi làm lại thao tác user",
+    };
+  }
+};

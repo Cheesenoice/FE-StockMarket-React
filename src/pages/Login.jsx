@@ -13,9 +13,9 @@ const Login = () => {
     setError("");
     const result = await loginUser({ tenDangNhap, matKhau });
     if (result.success) {
-      if (result.user.role === "NhanVien") {
+      if (result.user.role === "nhanvien") {
         navigate("/nhanvien");
-      } else if (result.user.role === "NhaDauTu") {
+      } else if (result.user.role === "nhadautu") {
         navigate("/nhadautu");
       }
     } else {

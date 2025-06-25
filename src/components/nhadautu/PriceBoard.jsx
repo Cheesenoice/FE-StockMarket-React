@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:3000";
-const USERNAME = "NDT01";
+const USERNAME = "sa";
 const PASSWORD = "123";
 
 function getGiaClass(gia, giaTC, giaTran, giaSan) {

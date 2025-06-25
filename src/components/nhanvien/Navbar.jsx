@@ -1,4 +1,4 @@
-import { Home, Users, LogOut } from "lucide-react";
+import { Home, Users, LogOut, ChartColumnStacked } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logoutUser } from "../../api/services/authService";
 
@@ -44,6 +44,47 @@ const Navbar = () => {
         >
           <Users className="w-5 h-5" /> Tạo Username
         </NavLink>
+        <NavLink
+          to="/nhanvien/stocks"
+          className={({ isActive }) =>
+            isActive
+              ? "font-semibold underline flex items-center gap-1"
+              : "flex items-center gap-1"
+          }
+        >
+          <ChartColumnStacked className="w-5 h-5" /> Quản lí cổ phiếu
+        </NavLink>
+        <NavLink
+          to="/nhanvien/order"
+          className={({ isActive }) =>
+            isActive
+              ? "font-semibold underline flex items-center gap-1"
+              : "flex items-center gap-1"
+          }
+        >
+          <ChartColumnStacked className="w-5 h-5" /> Sao kê lệnh
+        </NavLink>
+        <NavLink
+          to="/nhanvien/execorder"
+          className={({ isActive }) =>
+            isActive
+              ? "font-semibold underline flex items-center gap-1"
+              : "flex items-center gap-1"
+          }
+        >
+          <ChartColumnStacked className="w-5 h-5" /> Quét lệnh
+        </NavLink>
+        <NavLink
+          to="/nhanvien/backup"
+          className={({ isActive }) =>
+            isActive
+              ? "font-semibold underline flex items-center gap-1"
+              : "flex items-center gap-1"
+          }
+        >
+          <ChartColumnStacked className="w-5 h-5" /> Backup & Restore
+        </NavLink>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-1 hover:text-red-300"
